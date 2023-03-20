@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  mariadb:
+    image: mariadb:10.7
+    volumes:
+      - ./volumes/mariadb/:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: prestashop
+      MYSQL_USER: prestashop
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    healthcheck:
+      test: "/usr/bin/mysql --user=prestashop --password=password --execute \"SHOW DATABASES;\""
+      interval: 3s
+      timeout: 1s
+      retries: 5
+
+  prestashop:
+    image: prestashop/prestashop:8.0.2
+    environment:
+      PS_DOMAIN: localhost:8080
+      DB_SERVER: mariadb
+      DB_USER: prestashop
+      DB_PASSWD: password
+      DB_NAME: prestashop
+      PS_DEMO_MODE: true
+      PS_INSTALL_AUTO: 1
+      PS_FOLDER_ADMIN: admin_
+      PS_FOLDER_INSTALL: install_
+    ports:
+      - "8080:80"
+    volumes:
+      - ./volumes/prestashop/:/var/www/html/
+    depends_on:
+      mariadb:
+        condition: service_healthy
